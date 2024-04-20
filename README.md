@@ -2,6 +2,8 @@
 
 **rp-auto** is designed to help users easily and efficiently solve their bank reconciliation problems. It allows users to compare banking data with accounting data and quickly identify any discrepancies.
 
+![ScreenShot of rp-auto](https://i.ibb.co/1XGVVdL/rp-auto-screenshot.png)
+
 ## Features
 
 * Import banking data from CSV files
