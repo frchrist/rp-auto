@@ -1,56 +1,77 @@
-name: Build C++ Desktop App
-
+name: Windows-Qt6.5.2
 on:
   push:
     branches: [ main ]
+    paths:
+      - '**/*.cpp'
+      - '**/*.h'
+      - '**/*.ui'
+      - '**/*.qrc'
+      - 'CMakeLists.txt'
+      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - '**/*.cpp'
+      - '**/*.h'
+      - '**/*.ui'
+      - '**/*.qrc'
+      - 'CMakeLists.txt'
+      - '.github/workflows/**'
 
 jobs:
   build:
+    name: Build
     runs-on: windows-latest
-
+    strategy:
+      matrix:
+        qt_ver: [6.5.2]
+        qt_arch: [win64_msvc2019_64]
+        msvc_arch: [x64]
+        qt_arch_install: [msvc2019_64]
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install aqtinstall
-      run: pip install aqtinstall==3.1.21
-
-    - name: List available Qt modules
-      run: |
-        aqt list-qt windows desktop --modules 6.5.2 win64_msvc2019_64
-
-    - name: Install Qt with base components
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: 6.5.2
-        host: windows
-        target: desktop
-        arch: win64_msvc2019_64
-        modules: qtbase  # Start with just qtbase, add more after verifying
-
-    - name: Install build tools
-      run: choco install cmake ninja -y
-
-    - name: Configure project
-      run: |
-        mkdir build
-        cd build
-        cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build project
-      run: |
-        cd build
-        cmake --build . --config Release --parallel
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: built-app
-        path: build/Release/BankApp.exe
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Setup ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+        with:
+          version: 1.11.1
+          
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ matrix.qt_ver }}
+          arch: ${{ matrix.qt_arch }}
+          modules: 'qtbase qttools qtdeclarative qt5compat'
+          
+      - name: Build application
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }}
+          mkdir build
+          cd build
+          cmake -DCMAKE_PREFIX_PATH=D:\a\_temp\Qt\${{ matrix.qt_ver }}\${{ matrix.qt_arch_install }} -DCMAKE_BUILD_TYPE=Release -GNinja ..
+          cmake --build . --config Release --parallel
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BankApp_Qt6.5.2
+          path: build/Release/BankApp.exe
+          
+      - name: Create Release Package
+        if: startsWith(github.event.ref, 'refs/tags/')
+        shell: cmd
+        run: |
+          cd build
+          7z a BankApp_${{ github.ref_name }}_win64_msvc2019_64_Qt6.5.2.zip Release\BankApp.exe
+          
+      - name: Upload Release
+        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/BankApp_${{ github.ref_name }}_win64_msvc2019_64_Qt6.5.2.zip
