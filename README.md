@@ -26,7 +26,6 @@ To build and run the bank reconciliation tool, follow these steps:
 4. Run the application
 
 ## Contributing
-
 Contributions to the bank reconciliation tool are welcome! If you would like to contribute, please submit a pull request with your proposed changes. Before submitting a pull request, please make sure that your changes are well-tested and that they do not introduce any new bugs.
 
 ## License
