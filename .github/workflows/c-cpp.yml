@@ -8,32 +8,46 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest   # or ubuntu-latest or macos-latest
+    runs-on: windows-latest   # Using Windows since it's specified in your CMake (WIN32)
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install Qt (Optional if Qt app)
+    - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.5.2  # or your version
+        version: 6.5.2  # Matching your Qt version requirement
         host: windows
         target: desktop
+        modules: qtbase qttools qtdeclarative  # Core modules needed for your app
+
+    - name: Install build tools
+      run: choco install cmake ninja -y  # Using choco to install dependencies
 
     - name: Configure project
       run: |
         mkdir build
         cd build
-        cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release
+        cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release  # Using Ninja for faster builds
 
     - name: Build project
       run: |
         cd build
-        cmake --build . --config Release
+        cmake --build . --config Release --parallel  # Enable parallel builds
 
-    - name: Upload Artifact (Optional)
+    - name: Run tests (optional - add if you have tests)
+      run: |
+        cd build
+        ctest --output-on-failure
+
+    - name: Package application (optional)
+      run: |
+        cd build
+        cmake --install . --prefix install
+
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: built-app
-        path: build/Release/*.exe
+        path: build/install/bin/BankApp.exe  # Adjusted path based on your install config
