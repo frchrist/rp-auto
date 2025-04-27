@@ -46,7 +46,7 @@ jobs:
         with:
           version: ${{ matrix.qt_ver }}
           arch: ${{ matrix.qt_arch }}
-          modules: 'qtbase qttools qtdeclarative qt5compat'
+      
           
       - name: Build application
         shell: cmd
@@ -60,7 +60,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BankApp_Qt6.5.2
+          name: BankApp_Qt6.9
           path: build/Release/BankApp.exe
           
       - name: Create Release Package
