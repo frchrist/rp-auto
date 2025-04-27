@@ -14,25 +14,26 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: List available Qt modules
-      uses: jurplel/install-qt-action@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        version: 6.5.2
-        host: windows
-        target: desktop
-        command: list
-        arch: win64_msvc2019_64  # or your preferred architecture
+        python-version: '3.11'
 
-    - name: Install Qt with required modules
+    - name: Install aqtinstall
+      run: pip install aqtinstall==3.1.21
+
+    - name: List available Qt modules
+      run: |
+        aqt list-qt windows desktop --modules 6.5.2 win64_msvc2019_64
+
+    - name: Install Qt with base components
       uses: jurplel/install-qt-action@v3
       with:
         version: 6.5.2
         host: windows
         target: desktop
         arch: win64_msvc2019_64
-        modules: qtbase qttools qtdeclarative qt5compat
-        # Based on your CMake: Core, Gui, Widgets are needed
-        # qt5compat might be needed if migrating from Qt5
+        modules: qtbase  # Start with just qtbase, add more after verifying
 
     - name: Install build tools
       run: choco install cmake ninja -y
@@ -52,4 +53,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: built-app
-        path: build/Release/BankApp.exe  # Adjusted path for Windows builds
+        path: build/Release/BankApp.exe
