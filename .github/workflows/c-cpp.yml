@@ -1,0 +1,39 @@
+name: Build C++ Desktop App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest   # or ubuntu-latest or macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Qt (Optional if Qt app)
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: 6.5.2  # or your version
+        host: windows
+        target: desktop
+
+    - name: Configure project
+      run: |
+        mkdir build
+        cd build
+        cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build project
+      run: |
+        cd build
+        cmake --build . --config Release
+
+    - name: Upload Artifact (Optional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: built-app
+        path: build/Release/*.exe
